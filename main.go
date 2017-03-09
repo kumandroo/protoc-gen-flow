@@ -37,23 +37,13 @@ func main() {
 			}
 
 			for _, field := range msg.Field {
-				// d := pretty.Sprint(f)
-				// fmt.Fprintln(os.Stderr, d)
 				m.Fields = append(m.Fields, &Field{
 					Name: *field.Name,
-					Type: getType(field, *f.Package),
+					Type: getFieldType(field, *f.Package),
 				})
 			}
 
 			messageTemplate.Execute(code, m)
-		}
-
-		for _, svc := range f.Service {
-			for _, method := range svc.Method {
-				_ = method
-				// d := pretty.Sprint(m)
-				// fmt.Fprintln(os.Stderr, d)
-			}
 		}
 
 		name := f.GetName()
@@ -88,7 +78,7 @@ func emitResp(resp *plugin.CodeGeneratorResponse) {
 	}
 }
 
-func getType(field *descriptor.FieldDescriptorProto, pkg string) string {
+func getFieldType(field *descriptor.FieldDescriptorProto, pkg string) string {
 	ret := "any" // unknonwn
 
 	switch *field.Type {

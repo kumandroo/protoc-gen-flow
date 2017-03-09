@@ -25,9 +25,6 @@ var fileTemplate = template.Must(template.New("header").Parse(`
 // ------------------------------------
 `))
 
-var serviceTemplate = template.Must(template.New("service").Parse(`
-`))
-
 var messageTemplate = template.Must(template.New("message").Parse(`
 type {{.Name}} = {
 	{{- range $field := .Fields}}
