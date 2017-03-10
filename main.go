@@ -49,7 +49,7 @@ func main() {
 		name := f.GetName()
 		ext := filepath.Ext(name)
 		base := strings.TrimSuffix(name, ext)
-		output := fmt.Sprintf("%s.js", base)
+		output := fmt.Sprintf("%s.flow.js", base)
 
 		files = append(files, &plugin.CodeGeneratorResponse_File{
 			Name:    proto.String(output),
