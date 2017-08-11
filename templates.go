@@ -26,9 +26,9 @@ var fileTemplate = template.Must(template.New("header").Parse(`
 `))
 
 var messageTemplate = template.Must(template.New("message").Parse(`
-declare type {{.Name}} = {
+declare type {{.Name}} = {|
 	{{- range $field := .Fields}}
-	{{$field.Name}}: {{$field.Type}};
+	{{$field.Name}}?: {{$field.Type}};
 	{{- end}}
-};
+|};
 `))
