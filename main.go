@@ -103,7 +103,12 @@ func getFieldType(field *descriptor.FieldDescriptorProto, pkg string) string {
 		ret = "string"
 	case descriptor.FieldDescriptorProto_TYPE_GROUP:
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
-		ret = strings.TrimPrefix(*field.TypeName, fmt.Sprintf(".%s.", pkg))
+		if *field.TypeName == ".google.protobuf.Timestamp" {
+			// Special case for handling timestamps
+			ret = "string"
+		} else {
+			ret = strings.TrimPrefix(*field.TypeName, fmt.Sprintf(".%s.", pkg))
+		}
 	case descriptor.FieldDescriptorProto_TYPE_BYTES:
 	case descriptor.FieldDescriptorProto_TYPE_ENUM:
 		ret = "UNKNONWN TYPE"
