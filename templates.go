@@ -18,11 +18,14 @@ import (
 	"text/template"
 )
 
+// Message represents a protobuf message type
 type Message struct {
 	Name   string
 	Fields []*Field
+	IsMap  bool
 }
 
+// Field represents a protobuf message field type
 type Field struct {
 	Comment string
 	Name    string
@@ -32,7 +35,7 @@ type Field struct {
 var messageTemplate = template.Must(template.New("message").Parse(`
 export type {{.Name}} = {|
 	{{- range $field := .Fields}}
-	{{$field.Name}}: {{$field.Type}};
+	{{$field.Name}}?: {{$field.Type}};
 	{{- end}}
 |};
 `))
