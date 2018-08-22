@@ -164,7 +164,8 @@ func getFieldType(namespace string, field *descriptor.FieldDescriptorProto) stri
 
 				ret = fmt.Sprintf("{| [key: %s]: %s |}", keyType, valueType)
 
-				// Maps are represented as an array of map entries. We change the representation to a JS object so we return early to avoid appending array square braces.
+				// Maps are represented as an array of map entries. We change the representation to a JS object so
+				// we return early to avoid appending array square braces.
 				return ret
 			}
 

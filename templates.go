@@ -35,7 +35,7 @@ type Field struct {
 var messageTemplate = template.Must(template.New("message").Parse(`
 export type {{.Name}} = {|
 	{{- range $field := .Fields}}
-	{{$field.Name}}?: {{$field.Type}};
+	{{$field.Name}}?: {{$field.Type}},
 	{{- end}}
 |};
 `))
