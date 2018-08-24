@@ -42,8 +42,12 @@ const flowFileHeader = `
 // Map qualified name to Message
 var messageMap map[string]*Message
 
+// Map qualified name to Enum
+var enumMap map[string]*Enum
+
 func init() {
 	messageMap = make(map[string]*Message)
+	enumMap = make(map[string]*Enum)
 }
 
 func main() {
@@ -61,8 +65,13 @@ func main() {
 	code.WriteString(flowFileHeader)
 
 	for _, f := range req.ProtoFile {
+		ns := *f.Package + "$"
+		for _, enum := range f.EnumType {
+			emitEnumType(code, ns, enum)
+		}
+
 		for _, msg := range f.MessageType {
-			emitMessageType(code, *f.Package + "$", msg)
+			emitMessageType(code, ns, msg)
 		}
 	}
 
@@ -76,6 +85,30 @@ func main() {
 	})
 }
 
+func emitEnumType(code io.Writer, namespace string, enum *descriptor.EnumDescriptorProto) error {
+	name := namespace + *enum.Name
+
+	e := &Enum{
+		Name:   name,
+		Values: []string{},
+	}
+
+	for _, v := range enum.Value {
+		// Skip default value since we represent it with 'undefined' in JS
+		if *v.Number == 0 {
+			continue
+		}
+
+		e.Values = append(e.Values, *v.Name)
+	}
+
+	enumTemplate.Execute(code, e)
+
+	enumMap[name] = e
+
+	return nil
+}
+
 func emitMessageType(code io.Writer, namespace string, msg *descriptor.DescriptorProto) error {
 	name := namespace + *msg.Name
 
@@ -85,8 +118,13 @@ func emitMessageType(code io.Writer, namespace string, msg *descriptor.Descripto
 		IsMap:  msg.GetOptions().GetMapEntry(),
 	}
 
+	nestedNS := name+"$"
+	for _, enum := range msg.EnumType {
+		emitEnumType(code, nestedNS, enum)
+	}
+
 	for _, nestedType := range msg.NestedType {
-		emitMessageType(code, name+"$", nestedType)
+		emitMessageType(code, nestedNS, nestedType)
 	}
 
 	for _, field := range msg.Field {
@@ -96,6 +134,7 @@ func emitMessageType(code io.Writer, namespace string, msg *descriptor.Descripto
 		})
 	}
 
+	// Map types are inlined
 	if !m.IsMap {
 		messageTemplate.Execute(code, m)
 	}
@@ -142,7 +181,22 @@ func getFieldType(namespace string, field *descriptor.FieldDescriptorProto) stri
 		ret = "boolean"
 	case descriptor.FieldDescriptorProto_TYPE_STRING:
 		ret = "string"
-	case descriptor.FieldDescriptorProto_TYPE_GROUP:
+	case descriptor.FieldDescriptorProto_TYPE_ENUM:
+		parts := strings.Split(*field.TypeName, ".")
+		if len(parts) < 2 {
+			ret = "any"
+			break
+		}
+		parts = parts[1:]
+
+		name := strings.Join(parts, "$")
+
+		_, ok := enumMap[name]
+		if !ok {
+			panic(fmt.Sprintf("Enum '%v' not found in enum map", name))
+		}
+
+		ret = name
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
 		if *field.TypeName == ".google.protobuf.Timestamp" {
 			// Special case for handling timestamps
@@ -171,11 +225,11 @@ func getFieldType(namespace string, field *descriptor.FieldDescriptorProto) stri
 
 			ret = name
 		}
+	case descriptor.FieldDescriptorProto_TYPE_GROUP:
+		ret = "any"
 	case descriptor.FieldDescriptorProto_TYPE_BYTES:
-	case descriptor.FieldDescriptorProto_TYPE_ENUM:
 		ret = "any"
 	}
-
 	if *field.Label == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 		ret += "[]"
 	}

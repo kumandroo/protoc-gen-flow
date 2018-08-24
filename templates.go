@@ -39,3 +39,18 @@ export type {{.Name}} = {
 	{{- end}}
 };
 `))
+
+// Enum represents a protobuf enum type
+
+type Enum struct {
+	Name string
+	Values []string
+}
+
+var enumTemplate = template.Must(template.New("enum").Parse(`
+export type {{.Name}} =
+    {{- range $value := .Values}}
+	| '{{$value}}'
+	{{- end}}
+;
+`))
