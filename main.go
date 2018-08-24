@@ -62,11 +62,11 @@ func main() {
 
 	for _, f := range req.ProtoFile {
 		for _, msg := range f.MessageType {
-			emitMessageType(code, "", msg)
+			emitMessageType(code, *f.Package + "$", msg)
 		}
 	}
 
-	outputFilename := "index.js"
+	const outputFilename = "index.js"
 
 	emitFiles([]*plugin.CodeGeneratorResponse_File{
 		{
@@ -153,7 +153,7 @@ func getFieldType(namespace string, field *descriptor.FieldDescriptorProto) stri
 				ret = "any"
 				break
 			}
-			parts = parts[2:]
+			parts = parts[1:]
 
 			name := strings.Join(parts, "$")
 
