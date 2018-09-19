@@ -65,7 +65,7 @@ func main() {
 	code.WriteString(flowFileHeader)
 
 	for _, f := range req.ProtoFile {
-		ns := *f.Package + "$"
+		ns := strings.Replace(*f.Package, ".", "$", -1) + "$"
 		for _, enum := range f.EnumType {
 			emitEnumType(code, ns, enum)
 		}
