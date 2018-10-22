@@ -32,6 +32,17 @@ type Field struct {
 	Type    string
 }
 
+type Method struct {
+	Name string
+	RequestType string
+	ResponseType string
+}
+
+type Service struct {
+	Name string
+	Methods []*Method
+}
+
 var messageTemplate = template.Must(template.New("message").Parse(`
 export type {{.Name}} = {
 	{{- range $field := .Fields}}
@@ -53,4 +64,13 @@ export type {{.Name}} =
 	| '{{$value}}'
 	{{- end}}
 ;
+`))
+
+var serviceTemplate = template.Must(template.New("service").Parse(`
+export interface {{.Name}} {
+    {{- range $method := .Methods}}
+    {{$method.Name}}(request: {{$method.RequestType}}, options: any, callback: (err: ServiceError, response: {{$method.ResponseType}}) => void): void;
+    {{$method.Name}}(request: {{$method.RequestType}}, callback: (err: ServiceError, response: {{$method.ResponseType}}) => void): void;
+    {{- end}}
+};
 `))
